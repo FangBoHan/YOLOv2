@@ -6,3 +6,6 @@
   3. 對自建的資料集做 preprocessing、 data augmentation
   4. 訓練模型
   5. 測試模型
+
+![](https://i.imgur.com/M3kFwZa.png)
+圖一：YOLOv2 模型架構
