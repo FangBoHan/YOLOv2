@@ -1,2 +1,3 @@
 Download your yolov2 weights in this file.
+File URL : https://drive.google.com/drive/folders/1WjjuImQB0WbweNsbMcaOWSdqVFCKayS3
 File format : .h5
