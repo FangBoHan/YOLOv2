@@ -7,5 +7,5 @@
    * dataprocessing.py：將原始檔案 (.xml) 轉成模型的輸入型式、展示模型的預測結果。
    * data：測試資料。
 4. 輸出結果範例：
-   * ![](https://i.imgur.com/nCmkDD6.png =150x150)
-   * ![](https://i.imgur.com/Voh6jSW.png =150x150)
+   * <img src="https://i.imgur.com/nCmkDD6.png" width="300" height="300">
+   * <img src="https://i.imgur.com/Voh6jSW.png" width="300" height="300">
