@@ -34,13 +34,3 @@ x_files = glob.glob('data/image_416/*.jpg')
 
 for img_path in x_files:
     display_yolo(img_path, model, SCORE_THRESHOLD, IOU_THRESHOLD, ANCHORS)
-
-
-
-
-
-
-
-
-
-
