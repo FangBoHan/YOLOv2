@@ -3,9 +3,6 @@ import numpy as np
 import os
 import tensorflow as tf
 import tensorflow.keras.backend as K
-import cv2
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 
 
 def parse_annotation(ann_dir, img_dir, labels):
@@ -140,7 +137,7 @@ def get_dataset(img_dir, ann_dir, labels, batch_size):
     # This allows later elements to be prepared while the current element is being processed. 
     # This often improves latency and throughput, 
     # at the cost of using additional memory to store prefetched elements.
-    dataset = dataset.prefetch(10)
+    dataset = dataset.prefetch(batch_size)
     
     return dataset
 
@@ -162,11 +159,11 @@ def process_true_boxes(true_boxes, anchors, image_w, image_h):
     -------
     - detector_mask : array, shape (grid_w, grid_h, anchors_count, 1)
         用於表示哪個 grid cell 是使用哪個 anchor 偵測，
-        若 [x, y, a] = 1 表示第 (x, y) 個 grid 的使用第 a 個 anchor
-        若 [x, y, 0:anchors_count] = 0 表示該 grid 上沒有物件
+        若 [x, y, a] = 1 表示第 (x, y) 個 grid cell 的使用第 a 個 anchor
+        若 [x, y, 0:anchors_count] = 0 表示該 grid cell 上沒有物件
     - matching_true_boxes : array, shape (grid_w, grid_h, anchors_count, 5)
         Contains adjusted coords of bounding box in YOLO format
-    - true_boxes_grid : array, same shape than true_boxes (max_annot, 5),
+    - true_boxes_grid : array, same shape as true_boxes (max_annot, 5),
         format : x, y, w, h, class ; unit : grid cell
     
     Note:
@@ -278,115 +275,3 @@ def ground_truth_generator(dataset, class_count, anchors):
         
         batch = (imgs, detector_mask, matching_true_boxes, class_one_hot, true_boxes_grid)
         yield batch
-
-
-def display_yolo(image_path, model, score_threshold, iou_threshold, anchors):
-    '''
-    Display predictions from YOLO model.
-
-    Parameters
-    ----------
-    - image_path : image path.
-    - model : YOLO model.
-    - score_threshold : threshold used for filtering predicted bounding boxes.
-    - iou_threshold : threshold used for non max suppression.
-    '''
-    # load image
-    image = cv2.imread(image_path)
-
-    input_image = image[:,:,::-1]
-    input_image = image / 255.
-    image_w = input_image.shape[1]
-    image_h = input_image.shape[0]
-    grid_w = image_w // 32
-    grid_h = image_h // 32
-    
-    input_image = np.expand_dims(input_image, 0)
-
-    # prediction
-    y_pred = model.predict_on_batch(input_image)
-
-    # post prediction process
-    # grid coords tensor
-    coord_x = tf.cast(tf.reshape(tf.tile(tf.range(grid_w), [grid_h]), (1, grid_h, grid_w, 1, 1)), tf.float32)
-    coord_y = tf.transpose(coord_x, (0,2,1,3,4))
-    coords = tf.tile(tf.concat([coord_x,coord_y], -1), [10, 1, 1, 5, 1])
-    dims = K.cast_to_floatx(K.int_shape(y_pred)[1:3])
-    dims = K.reshape(dims,(1,1,1,1,2))
-    # anchors tensor
-    anchors = np.array(anchors)
-    anchors = anchors.reshape(len(anchors) // 2, 2)
-    # pred_xy and pred_wh shape (m, grid_w, grid_h, Anchors, 2)
-    pred_xy = K.sigmoid(y_pred[:,:,:,:,0:2])
-    pred_xy = (pred_xy + coords)
-    pred_xy = pred_xy / dims
-    pred_wh = K.exp(y_pred[:,:,:,:,2:4])
-    pred_wh = (pred_wh * anchors)
-    pred_wh = pred_wh / dims
-    # pred_confidence
-    box_conf = K.sigmoid(y_pred[:,:,:,:,4:5])  
-    # pred_class
-    box_class_prob = K.softmax(y_pred[:,:,:,:,5:])
-
-    # Reshape
-    pred_xy = pred_xy[0,...]
-    pred_wh = pred_wh[0,...]
-    box_conf = box_conf[0,...]
-    box_class_prob = box_class_prob[0,...]
-
-    # Convert box coords from x,y,w,h to x1,y1,x2,y2
-    box_xy1 = pred_xy - 0.5 * pred_wh
-    box_xy2 = pred_xy + 0.5 * pred_wh
-    boxes = K.concatenate((box_xy1, box_xy2), axis=-1)
-
-    # Filter boxes
-    box_scores = box_conf * box_class_prob
-    box_classes = K.argmax(box_scores, axis=-1) # best score index
-    box_class_scores = K.max(box_scores, axis=-1) # best score
-    prediction_mask = box_class_scores >= score_threshold
-    boxes = tf.boolean_mask(boxes, prediction_mask)
-    scores = tf.boolean_mask(box_class_scores, prediction_mask)
-    classes = tf.boolean_mask(box_classes, prediction_mask)
-
-    # Scale box to image shape
-    boxes = boxes * image_h
-
-    # Non Max Supression
-    selected_idx = tf.image.non_max_suppression(boxes, scores, 50, iou_threshold=iou_threshold)
-    boxes = K.gather(boxes, selected_idx)
-    scores = K.gather(scores, selected_idx)
-    classes = K.gather(classes, selected_idx)
-    
-    # Draw image
-    plt.figure(figsize=(2,2))
-    f, (ax1) = plt.subplots(1,1, figsize=(10, 10))
-    ax1.imshow(image[:,:,::-1])
-    count_detected = boxes.shape[0]
-    ax1.set_title('Detected objects count : {}'.format(count_detected))
-    color = []
-    for i in range(5):
-        for j in range(5):
-            for k in range(5):
-                color.append((k*0.2, j*0.2, i*0.2))
-    for i in range(count_detected):
-        box = boxes[i,...]
-        x = box[0]
-        y = box[1]
-        w = box[2] - box[0]
-        h = box[3] - box[1]
-        classe = classes[i].numpy()
-        clr = color[classe]
-        rect = patches.Rectangle((x.numpy(), y.numpy()), w.numpy(), h.numpy(), linewidth = 3, edgecolor=clr,facecolor='none')
-        ax1.add_patch(rect)
-    
-
-
-
-
-
-
-
-
-
-
-
