@@ -5,7 +5,8 @@
 3. YOLOv2 pretrined weights (weights.h5) 是從[這裡](https://drive.google.com/drive/folders/1WjjuImQB0WbweNsbMcaOWSdqVFCKayS3)下載的。
 4. 檔案說明：
    * model.py：建立 YOLOv2 模型。
-   * dataprocessing.py：將原始檔案 (.xml) 轉成模型的輸入型式、展示模型的預測結果。
+   * dataprocessing.py：將原始檔案 (.xml) 轉成模型的輸入型式。
+   * evaluate.py：計算模型的 mAP、展示模型的預測結果。
    * data：測試資料。
 5. 輸出結果範例：
    * <img src="https://i.imgur.com/nCmkDD6.png" width="300" height="300">
