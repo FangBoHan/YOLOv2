@@ -1,6 +1,6 @@
-# Keras/Tensorflow Implementation of YOLOv2
+# YOLOv2 with Keras/TensorFlow
 
-1. 這是 [YOLOv2](https://arxiv.org/abs/1612.08242) 的 keras/tensorflow 實現。
+1. 用 keras/tensorflow 實現 [YOLOv2](https://arxiv.org/abs/1612.08242) 模型。
 2. [我的 YOLOv2 筆記](https://docs.google.com/document/d/1AVYrpEHitYIbPsDnhhdpOoQoKsceGuzfKxVUy15F7MQ/edit)。
 3. YOLOv2 pretrined weights (weights.h5) 是從[這裡](https://drive.google.com/drive/folders/1WjjuImQB0WbweNsbMcaOWSdqVFCKayS3)下載的。
 4. 檔案說明：
