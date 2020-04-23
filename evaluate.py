@@ -230,8 +230,9 @@ def get_COCO_mAP(boxes, scores, classes, true_boxes):
     
     Parameters
     ----------
-    - predictions : bounding boxes and class prbabilities predicted by our model, 
-        shape = (box_count, 4 + class_count) = (bbox_count, [x, y, w, h, each class' probability])
+    - boxes : 
+    - scores : 
+    - classes : 
     - true_boxes : ground truth boxes, shape = (ground_truth_count, 5)
     """
     class_count = 80
@@ -279,18 +280,3 @@ def get_VOC_mAP(boxes, scores, classes, true_boxes):
     mAP = AP.mean()
     
     return mAP
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
