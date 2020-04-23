@@ -111,13 +111,13 @@ def get_dataset(img_dir, ann_dir, labels, batch_size):
     # Randomly shuffles the elements of this dataset.
     dataset = dataset.shuffle(len(imgs_name))
     
-    # repeat(count=None) :
-    # Repeats this dataset so each original value is seen "count" times.
-    # >>> dataset = tf.data.Dataset.from_tensor_slices([1, 2, 3]) 
-    # >>> dataset = dataset.repeat(3) 
-    # >>> list(dataset.as_numpy_iterator()) 
-    # [1, 2, 3, 1, 2, 3, 1, 2, 3]
-    dataset = dataset.repeat()
+#    # repeat(count=None) :
+#    # Repeats this dataset so each original value is seen "count" times.
+#    # >>> dataset = tf.data.Dataset.from_tensor_slices([1, 2, 3]) 
+#    # >>> dataset = dataset.repeat(3) 
+#    # >>> list(dataset.as_numpy_iterator()) 
+#    # [1, 2, 3, 1, 2, 3, 1, 2, 3]
+#    dataset = dataset.repeat()
     
     # map(map_func, num_parallel_calls=None) :
     # Applies "map_func" to each element of this dataset, 
@@ -275,3 +275,16 @@ def ground_truth_generator(dataset, class_count, anchors):
         
         batch = (imgs, detector_mask, matching_true_boxes, class_one_hot, true_boxes_grid)
         yield batch
+
+
+def x1y1x2y2_xywh(box):
+    """
+    將原本是 (x1, y1, x2, y2) 格式的 box轉成 (x, y, w, h)
+    """
+    x = box[0]
+    y = box[1]
+    w = box[2] - box[0]
+    h = box[3] - box[1]
+    new_box = np.array([x, y, w, h])
+    
+    return new_box
